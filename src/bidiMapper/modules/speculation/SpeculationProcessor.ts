@@ -90,21 +90,15 @@ export class SpeculationProcessor {
       );
     }
 
-    // TODO: Emit the prefetchStatusUpdated event when event system supports it
-    // When preload events are supported, this should emit:
-    this.#eventManager.registerEvent(
-      {
-        type: 'event',
-        method: 'speculation.prefetchStatusUpdated',
-        params: {
-          context: cdpTarget.id,
-          initiatingFrameId,
-          url,
-          status,
-        },
-      },
-      cdpTarget.id,
-    );
+    // Log that we are mapping to the BiDi event
+    // eslint-disable-next-line no-console
+    console.log('[SpeculationProcessor] Mapping to speculation.prefetchStatusUpdated:', {
+      context: cdpTarget.id,
+      initiatingFrameId,
+      url,
+      status,
+    });
+    
   }
 
   /**
@@ -113,14 +107,24 @@ export class SpeculationProcessor {
    * should register listeners for those events.
    */
   onCdpTargetCreated(cdpTarget: CdpTarget): void {
+    console.log("SpeculationProcessor: onCDP Target created")
     // Register CDP event listener for Preload.prefetchStatusUpdated
     cdpTarget.cdpClient.on('Preload.prefetchStatusUpdated', (event) => {
-      this.#updatePrefetchStatus(
-        cdpTarget,
-        event.key.url,
-        parseInt(event.key.loaderId, 10), // Convert string to number
-        event.status as Speculation.PrefetchStatus,
-      );
+      // Log that the CDP event was received
+      console.log('SpeculationProcessor: CDP Preload.prefetchStatusUpdated event received:', event);
+      this.#eventManager.registerEvent(
+      {
+      type: 'event',
+      method: 'speculation.prefetchStatusUpdated',
+      params: {
+        context: cdpTarget.id,
+        initiatingFrameId: parseInt(event.key.loaderId, 10),
+        url: event.key.url,
+        status: event.status as Speculation.PrefetchStatus,
+      },
+      },
+      cdpTarget.id,
+    );
     });
   }
 
@@ -160,4 +164,17 @@ export class SpeculationProcessor {
   clearPrefetchRequests(): void {
     this.#prefetchRequests.clear();
   }
+}
+
+/**
+ * Enum for prefetch status.
+ * This is used to indicate the current status of a prefetch request.
+ */
+export enum PrefetchStatus {
+  Pending = "Pending",
+  Running = "Running",
+  Ready = "Ready",
+  Success = "Success",
+  Failure = "Failure",
+  NotSupported = "NotSupported",
 }

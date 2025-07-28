@@ -371,6 +371,7 @@ export class CdpTargetManager {
     this.#networkStorage.onCdpTargetCreated(target);
     this.#bluetoothProcessor.onCdpTargetCreated(target);
     this.#speculationProcessor.onCdpTargetCreated(target);
+    console.log('CdpTargetManager: Created CdpTarget');
 
     return target;
   }
