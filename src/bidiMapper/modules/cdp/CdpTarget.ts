@@ -419,7 +419,6 @@ export class CdpTarget {
     }
   }
 
-
   async toggleDeviceAccessIfNeeded(): Promise<void> {
     const enabled = this.isSubscribedTo(
       Bluetooth.EventNames.RequestDevicePromptUpdated,

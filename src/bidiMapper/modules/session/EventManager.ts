@@ -191,12 +191,21 @@ export class EventManager extends EventEmitter<EventManagerEventsMap> {
       );
     this.#bufferEvent(eventWrapper, eventName);
     // Send events to channels in the subscription priority.
+    console.log('about to emit event', eventName);
+    console.log('Context for event:', contextId);
+    console.log(
+      'Subscribers for event:',
+      eventName,
+      'count: ',
+      sortedGoogChannels.length,
+    );
     for (const googChannel of sortedGoogChannels) {
       this.emit(EventManagerEvents.Event, {
         message: OutgoingMessage.createFromPromise(event, googChannel),
         event: eventName,
       });
       this.#markEventSent(eventWrapper, googChannel, eventName);
+      console.log('Marking event sent: ', eventName);
     }
   }
 
@@ -243,6 +252,8 @@ export class EventManager extends EventEmitter<EventManagerEventsMap> {
     await this.#userContextStorage.verifyUserContextIdList(userContextIds);
 
     const unrolledEventNames = new Set(unrollEvents(eventNames));
+    console.log('Unrolled event names:', Array.from(unrolledEventNames));
+
     const subscribeStepEvents = new Map<ChromiumBidi.EventNames, Set<string>>();
     const subscriptionNavigableIds = new Set(
       contextIds.length
@@ -278,6 +289,9 @@ export class EventManager extends EventEmitter<EventManagerEventsMap> {
       userContextIds,
       googChannel,
     );
+
+    console.log('Subscription created with ID:', subscription.id);
+    console.log('Subscription event names:', subscription.eventNames);
 
     for (const eventName of subscription.eventNames) {
       for (const contextId of subscriptionNavigableIds) {
